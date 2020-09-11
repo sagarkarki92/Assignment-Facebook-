@@ -7,6 +7,7 @@ class PostImageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //for dynamic height and weight of images based on number on images.
     final double containerHeight = MediaQuery.of(context).size.height * 0.35;
     final double containerWidth = MediaQuery.of(context).size.width;
 
@@ -19,7 +20,6 @@ class PostImageContainer extends StatelessWidget {
     } else if (postImages.length > 4) {
       return _moreThanFourImageContainer(containerHeight, containerWidth);
     } else {
-      print(postImages.length);
       return SizedBox.shrink();
     }
   }
@@ -32,10 +32,10 @@ class PostImageContainer extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Wrap(
         direction: Axis.horizontal,
-        alignment: WrapAlignment.center,
         runSpacing: 8.0,
         spacing: 16.0,
         children: [
+          //showing no more than 4 images with more tag in foreground
           ...List.generate(4, (index) {
             if (index == 3) {
               return _moreTagImage(
@@ -140,7 +140,7 @@ class PostImageContainer extends StatelessWidget {
         image: postImages[0],
         height: containerHeight * 0.50,
         width: containerWidth * 0.5,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
       ),
     );
   }

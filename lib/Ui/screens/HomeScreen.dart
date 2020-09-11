@@ -1,5 +1,4 @@
 import 'package:assignmentApp/Ui/widgets/widgets.dart';
-import 'package:assignmentApp/config/noPageException.dart';
 import 'package:assignmentApp/provider/postProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,30 +10,10 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
+//currently there are no other features so every thing is in screen widget ,or else we can extract
+//this into another widget for clean structure
+
 class _HomeScreenState extends State<HomeScreen> {
-  ScrollController _controller;
-
-  bool isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = ScrollController();
-    // _controller.addListener(() {
-    //   if (_controller.position.pixels == _controller.position.maxScrollExtent) {
-    //     print("This is last");
-    //   }
-    // });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  bool onNotification(ScrollNotification scrollNotification) {}
-
   @override
   Widget build(BuildContext context) {
     final postProvider = Provider.of<PostProvider>(context);
@@ -46,48 +25,47 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: NotificationListener(
         onNotification: (ScrollNotification scrollNotification) {
-          if (scrollNotification.metrics.pixels ==
-              scrollNotification.metrics.maxScrollExtent) {
-            try {
-              // setState(() {
-              //   isLoading = !isLoading;
-              // });
-              // postProvider.getMorePosts(posts.length);
-            } on NoPostException catch (_) {
-              // setState(() {
-              //   isLoading = !isLoading;
-              // });
-            }
+          //checking to go end of the list to get paginated data(posts)
+          if (scrollNotification is ScrollEndNotification &&
+              scrollNotification.metrics.pixels ==
+                  scrollNotification.metrics.maxScrollExtent) {
+            postProvider.getMorePosts();
+            return true;
           }
-          return true;
+          return false;
         },
         child: ListView.builder(
-          controller: _controller,
+          // + 2 for create new post and fetching indicator at last.
           itemCount: posts.length + 2,
           itemBuilder: (context, index) {
             //for rendering create post container at first of list
             if (index == 0) {
               return CreatePostWidget();
+            } else if (index == posts.length + 1 && postProvider.hasMorePosts) {
+              //for rendering fetching indicator at the end of the list.
+              return _fetchingLabel(context, 'Fetching post...');
+            } else if (index <= posts.length) {
+              //rendering post from posts list
+              return PostWidget(
+                post: posts[index - 1],
+              );
+            } else {
+              return SizedBox();
             }
-
-            if (posts.length + 1 == index) {
-              return FutureBuilder(
-                  future: postProvider.getMorePosts(index - 1),
-                  builder: (context, data) {
-                    if (data.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    return SizedBox();
-                  });
-            }
-
-            // print(index);
-            return PostWidget(
-              post: posts[index - 1],
-            );
           },
         ),
       ),
+    );
+  }
+
+  Widget _fetchingLabel(BuildContext context, String label) {
+    return Center(
+      heightFactor: 4,
+      child: Text('$label',
+          style: Theme.of(context)
+              .textTheme
+              .bodyText1
+              .copyWith(color: Colors.grey)),
     );
   }
 }

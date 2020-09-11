@@ -8,6 +8,7 @@ class AppTheme {
   static final _scaffoldBackgroundColor = Color(0xFFF0F2F5);
 
   static ThemeData customeTheme() {
+    //passing theme according to the platform.yet to set more properties to the theme.
     return Platform.isIOS
         ? _myIosTheme(ThemeData.light())
         : _myAndroidTheme(ThemeData.light());
@@ -17,7 +18,6 @@ class AppTheme {
     return baseTheme.copyWith(
       primaryColor: _appPrimaryColor,
       accentColor: Colors.pink,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
       scaffoldBackgroundColor: _scaffoldBackgroundColor,
     );
   }

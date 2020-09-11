@@ -1,1 +1,0 @@
-class NoPostException implements Exception {}

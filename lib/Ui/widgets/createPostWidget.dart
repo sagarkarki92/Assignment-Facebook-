@@ -28,7 +28,6 @@ class CreatePostWidget extends StatelessWidget {
         Expanded(
           child: InkWell(
             onTap: () {
-              print('status pressed');
               Navigator.of(context).pushNamed(routes.postScreen);
             },
             child: Text(

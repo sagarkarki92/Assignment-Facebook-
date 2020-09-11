@@ -7,7 +7,7 @@ import 'package:multi_image_picker/multi_image_picker.dart';
 
 import 'package:assignmentApp/model/post.dart';
 import 'package:assignmentApp/provider/postProvider.dart';
-import '../../routes.dart' as routes;
+import '../widgets/widgets.dart';
 
 class PostScreen extends StatefulWidget {
   PostScreen({Key key}) : super(key: key);
@@ -51,9 +51,10 @@ class _PostScreenState extends State<PostScreen> {
     );
   }
 
+  //checking empty for both new and edit post.
   _areFieldsEmpty() => _status.trim().isEmpty && images.isEmpty;
 
-  postHandler() async {
+  newPostHandler() async {
     if (_areFieldsEmpty()) {
       showErrorDialog();
     } else {
@@ -66,8 +67,9 @@ class _PostScreenState extends State<PostScreen> {
     if (_areFieldsEmpty()) {
       showErrorDialog();
     } else {
+      //checking content of imagesList with previous one
       if (!listEquals(previousPost.imageUrls, images) ||
-          previousPost.status != _status) {
+          previousPost.status != _status.trim()) {
         postProvider.editPost(previousPost.id, _status, images);
         Navigator.pop(context);
       } else {
@@ -81,17 +83,20 @@ class _PostScreenState extends State<PostScreen> {
     try {
       resultImageList = await MultiImagePicker.pickImages(maxImages: 300);
 
+      //getting byteData of picked images
       List<ByteData> imgData = new List();
       for (var image in resultImageList) {
         imgData.add(await image.getByteData());
       }
 
+      //incase imagePicking operation failed in any case(from documentation)
       if (!mounted) return;
 
       setState(() {
-        images = [...imgData];
+        images = images + imgData;
       });
     } catch (error) {
+      //currently just printing in terminal if exception occured.
       print(error.toString());
     }
   }
@@ -132,100 +137,68 @@ class _PostScreenState extends State<PostScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextFormField(
-              decoration: InputDecoration(
-                hintText: "Whats on your mind?",
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.grey,
-                    width: 4,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Theme.of(context).primaryColor,
-                    width: 2,
-                  ),
-                ),
-              ),
-              initialValue: _status,
-              maxLines: 4,
-              onChanged: (inputvalue) => _status = inputvalue,
-            ),
+            _statusField(context),
             FlatButton.icon(
               onPressed: loadImageFromGallery,
               icon: Icon(Icons.photo),
               label: Text('Add Photo'),
             ),
-            images.isEmpty
-                ? Spacer()
-                : Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 4.0,
-                      children: [
-                        ...images.map((image) {
-                          return UploadImageItem(
-                            image: image.buffer.asUint8List(),
-                            onPress: () => cancelUploadImage(image),
-                          );
-                        })
-                      ],
-                    ),
+            images.isEmpty ? Spacer() : _selectedImagesContainer(),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: RaisedButton(
+                  textColor: Colors.white,
+                  color: Colors.blue,
+                  child: Text(
+                    _postButton,
                   ),
-            RaisedButton(
-                textColor: Colors.white,
-                color: Colors.blue,
-                child: Text(
-                  _postButton,
-                ),
-                onPressed: () =>
-                    _postButton == "Post" ? postHandler() : editHandler()),
+                  onPressed: () =>
+                      _postButton == "Post" ? newPostHandler() : editHandler()),
+            ),
           ],
         ),
       ),
     );
   }
-}
 
-class UploadImageItem extends StatelessWidget {
-  final Uint8List image;
-  final Function onPress;
+  Widget _selectedImagesContainer() {
+    return Expanded(
+      child: GridView.count(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 4.0,
+        children: [
+          ...images.map((image) {
+            return UploadImageItem(
+              image: image.buffer.asUint8List(),
+              onPress: () => cancelUploadImage(image),
+            );
+          })
+        ],
+      ),
+    );
+  }
 
-  UploadImageItem({Key key, this.image, this.onPress}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.memory(
-          image,
-          fit: BoxFit.fill,
-        ),
-        Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Colors.black54,
-              Colors.transparent,
-            ],
-          )),
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-            icon: Icon(
-              Icons.cancel,
-              color: Colors.white,
-            ),
-            onPressed: onPress,
+  Widget _statusField(BuildContext context) {
+    return TextFormField(
+      decoration: InputDecoration(
+        hintText: "Whats on your mind?",
+        border: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.grey,
+            width: 4,
           ),
         ),
-      ],
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
+        ),
+      ),
+      initialValue: _status,
+      maxLines: 4,
+      onChanged: (inputvalue) => _status = inputvalue,
     );
   }
 }
