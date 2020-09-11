@@ -22,7 +22,7 @@ class _PostScreenState extends State<PostScreen> {
   String _postButton = 'Post';
   String _status = '';
 
-  //for accessing provider globally in this class
+  //for accessing provider globally in this class,
   Post previousPost;
   PostProvider postProvider;
 
